@@ -33,7 +33,6 @@ var cryptoPrices = map[string]float64{
 	"ADA": 1.50,
 }
 
-var orderMutex sync.Mutex
 var broadcast = make(chan map[string]float64)
 
 // WebSocket Handler
@@ -139,6 +138,7 @@ func getTradeHistory(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	// Initialize database connection
 	var err error
 	db, err = sql.Open("postgres", dbConnStr)
 	if err != nil {
@@ -151,10 +151,12 @@ func main() {
 	if err != nil {
 		log.Fatal("Database connection failed:", err)
 	}
+	// end of db connection
 
-	// Start WebSocket price updates
+	// Start WebSocket price updates with go routine
 	go updatePrices()
 
+	// Initialize router
 	router := mux.NewRouter()
 	router.HandleFunc("/ws", handleWebSocket)
 	router.HandleFunc("/order", handleOrder).Methods("POST")
